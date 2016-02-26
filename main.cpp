@@ -1,21 +1,73 @@
 #include "mbed.h"
 #include "rtos.h"
- 
-DigitalOut led1(LED1);
-DigitalOut led2(LED2);
- 
-void led2_thread(void const *args) {
+
+
+#define LED_SYS_BLINK_OFF_SEC   1.0f        //Время нахождения системного светодиода в выключенном состоянии
+#define LED_SYS_BLINK_ON_SEC    0.1f        //Время нахождения системного светодиода во включенном состоянии
+
+#define LED_RED_SWITCH_PERIOD   0.2f        //Период изменения яркости красного светодиода
+
+
+DigitalOut  led_sys  ( PA_5 );
+PwmOut      led_red  ( PA_0 );
+
+// bool        led_red_enable;
+
+/**
+* задача моргания мигяния красным светодиодом
+*/
+void taskLedRed(void const *args)
+{
+
     while (true) {
-        led2 = !led2;
-        Thread::wait(1000);
+
+        led_red = 0.0f;
+        Thread::wait(LED_RED_SWITCH_PERIOD);
+
+        led_red = 0.25f;
+        Thread::wait(LED_RED_SWITCH_PERIOD);
+
+        led_red = 0.5f;
+        Thread::wait(LED_RED_SWITCH_PERIOD);
+
+        led_red = 0.75f;
+        Thread::wait(LED_RED_SWITCH_PERIOD);
+
+        led_red = 1.0f;
+        Thread::wait(LED_RED_SWITCH_PERIOD);
+
     }
 }
- 
-int main() {
-    Thread thread(led2_thread);
-    
+
+/**
+* Блок инициализации перед началов выполнения программы
+*/
+void init()
+{
+
+    led_red = 0;
+    led_sys = 0;
+
+//      led_red_enable = true;
+
+}
+
+
+/**
+ * Точка входа в программу
+ */
+int main()
+{
+
+    Thread thread(taskLedRed);
+
     while (true) {
-        led1 = !led1;
-        Thread::wait(500);
+
+        led_sys = 1;
+        Thread::wait(LED_SYS_BLINK_ON_SEC);
+
+        led_sys = 0;
+        Thread::wait(LED_SYS_BLINK_OFF_SEC);
+
     }
 }
